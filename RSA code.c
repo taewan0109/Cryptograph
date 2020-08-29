@@ -25,7 +25,7 @@ int main(void)
 {
     DATA N, e, d, p, q, plane, cipher, decrypted, decrypted_fast;
     DATA plane_s[INLEN] = { 0, }, cipher_s[INLEN] = { 0, };
-    char str[INLEN] = { 0, }, decrypted_s[INLEN] = { 0, }, decrypted_fast_s[INLEN] = { 0, };
+    unsigned char str[INLEN] = { 0, }, decrypted_s[INLEN] = { 0, }, decrypted_fast_s[INLEN] = { 0, };
     int i;
 
     srand((unsigned int)time(NULL));
