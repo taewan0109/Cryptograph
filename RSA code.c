@@ -122,7 +122,7 @@ bool isPrime(int num)
 
 void makePQ(int * p, int * q)
 {
-    int i, len = 0;
+    int i, len = 0, r_1, r_2;
     int primeArr[(MAX - MIN) / 2] = { 0, };
 
     for (i = MIN; i < MAX; i++)
@@ -132,8 +132,16 @@ void makePQ(int * p, int * q)
             len++;
         }
     
-    *p = primeArr[rand() % len];
-    *q = primeArr[rand() % len];
+    r_1 = rand() % len;
+    *p = primeArr[r_1];
+    while (1){
+        r_2 = rand() % len;
+        if (r_1 != r_2){
+            *q = primeArr[r_2];
+            break;
+        }
+    }
+        
 }
 
 int makeCoprime(int phi)
