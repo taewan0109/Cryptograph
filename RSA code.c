@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define MIN 4000
-#define MAX 5000
+#define MIN 400
+#define MAX 500
 
 void makeKey(int*, int*, int*, int*, int*);
 int encryption(int, int, int);
