@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <stdbool.h>
 #include <time.h>
 
-#define MIN 900
-#define MAX 1000
-#define INLEN 20
+#define MIN 9500
+#define MAX 10000
+#define INLEN 30
+#define NEXT(a, b, c) {a = b; b = c;}
 
 typedef unsigned long long DATA;
 typedef long double RDATA;
@@ -18,18 +20,22 @@ DATA decryption_fast(DATA, DATA, DATA, DATA, DATA);
 void makePQ(DATA*, DATA*);
 DATA makeCoprime(DATA);
 DATA makeInverse(DATA, DATA);
+DATA extendEuclid(DATA, DATA);
 DATA returnGCD(DATA, DATA);
 bool isPrime(DATA);
+clock_t start, end;
 
 int main(void)
 {
-    DATA N, e, d, p, q, plane, cipher, decrypted, decrypted_fast;
+    DATA N, e, d, p, q;
     DATA plane_s[INLEN] = { 0, }, cipher_s[INLEN] = { 0, };
     unsigned char str[INLEN] = { 0, }, decrypted_s[INLEN] = { 0, }, decrypted_fast_s[INLEN] = { 0, };
     int i;
 
+    printf("Program Start...\n\n");
     srand((unsigned int)time(NULL));
     makeKey(&N, &e, &d, &p, &q);
+
 
     printf("암호화할 문자열을 입력해 주세요(%d자 이내): ", INLEN);
     gets(str);
@@ -37,30 +43,27 @@ int main(void)
     printf("\n평문: %s\n\n", str);
 
     printf("10진수: ");
+
     for (i = 0; i < INLEN; i++)
     {
         printf("%d ", str[i]);
-        plane_s[i] = (DATA)str[i];
-        cipher_s[i] = encryption(N, e, plane_s[i]);
-        decrypted_s[i] = (char)decryption(N, d, cipher_s[i]);
+        //plane_s[i] = (DATA)str[i];
+        cipher_s[i] = encryption(N, e, (DATA)str[i]);
+        //start = clock();
         decrypted_fast_s[i] = (char)decryption_fast(N, d, cipher_s[i], p, q);
+        //end = clock();
+        //printf("fast: %f\n", (float)(end - start) / CLOCKS_PER_SEC);
     }
     
     printf("\n\n암호문: ");
     for (i = 0; i < INLEN; i++)
         printf("%lld ", cipher_s[i]);
 
-    printf("\n\n복호문: %s\n", decrypted_fast_s);
-    
-    /*plane = 100000;
-    cipher = encryption(N, e, plane);
-    decrypted = decryption(N, d, cipher);
-    decrypted_fast = decryption_fast(N, d, cipher, p, q);
+    printf("\n\n복호화: ");
+    for (i = 0; i < INLEN; i++)
+        printf("%d ", decrypted_fast_s[i]);
 
-    printf("plane text: %lld\n", plane);
-    printf("cipher text: %lld\n", cipher);
-    printf("decrypted text: %lld\n", decrypted);
-    printf("decrypted text(fast): %lld\n", decrypted_fast);*/
+    printf("\n\n복호문: %s\n", decrypted_fast_s);
 
     return 0;
 }
@@ -75,7 +78,9 @@ void makeKey(DATA* N, DATA* e, DATA* d, DATA* p, DATA* q)
     printf("p: %lld, q: %lld, N: %lld, phi: %lld\n", *p, *q, *N, phi);
 
     *e = makeCoprime(phi);
-    *d = makeInverse(*e, phi);
+    //*d = makeInverse(*e, phi);
+    *d = extendEuclid(phi, *e);
+
     printf("N: %lld, e: %lld, d: %lld\n\n", *N, *e, *d);
 }
 
@@ -95,6 +100,8 @@ DATA decryption(DATA N, DATA d, DATA num)
 {
     DATA prod = 1;
 
+    if (num == 0)   return 0;
+
     for (DATA i = 0; i < d; i++)
     {
         prod *= num % N;
@@ -109,6 +116,7 @@ DATA decryption_fast(DATA N, DATA d, DATA num, DATA p, DATA q)
     DATA d_p, d_q, q_inv;
     DATA m_1 = 1, m_2 = 1, m_3, h, i;
 
+    if (num == 0)   return 0;
     d_p = d % (p - 1);
     d_q = d % (q - 1);
 
@@ -156,7 +164,13 @@ bool isPrime(DATA num)
 void makePQ(DATA* p, DATA* q)
 {
     DATA i, len = 0, r_1, r_2;
-    DATA primeArr[(MAX - MIN) / 2] = { 0, };
+    DATA* primeArr = (DATA*)malloc((MAX-MIN)/2 * sizeof(DATA));
+
+    if (primeArr == NULL)
+    {
+        printf("memory allocation error: primeArr is NULL");
+        exit(0);
+    }
 
     for (i = MIN; i < MAX; i++)
         if (isPrime(i))
@@ -174,29 +188,36 @@ void makePQ(DATA* p, DATA* q)
             break;
         }
     }
-
+    free(primeArr);
 }
 
 DATA makeCoprime(DATA phi)
 {
-    DATA* copArr = (DATA*)malloc(phi * sizeof(DATA));
-    DATA len = 0, p;
+    //DATA* copArr = (DATA*)malloc(sizeof(DATA));
+    DATA len = 0, p, ret, i;
 
-    if (copArr == NULL)
+    /*if (copArr == NULL)
     {
-        printf("memory allocation error");
+        printf("%d\n", phi);
+        printf("memory allocation error: copArr is NULL");
         exit(0);
-    }
+    }*/
 
-    for (DATA i = 2; i <= phi; i++)
+    p = (int)pow((RDATA)phi, 1.0 / 3.0);
+
+    for (i = 2; i <= phi; i++)
         if (returnGCD(i, phi) == 1)
         {
-            copArr[len - 1] = i;
+            //copArr = (DATA*)realloc(copArr, (len+1)*sizeof(DATA));
+            //copArr[len] = i;
             len++;
+            if (len == p)   break;
         }
-
-    p = (DATA)pow((RDATA)phi, 1.0 / 4.0);
-    return copArr[rand() % p];
+    
+    ret = i;
+    //ret = copArr[rand() % p];
+    //free(copArr);
+    return ret;
 }
 
 DATA returnGCD(DATA p, DATA q)
@@ -213,5 +234,32 @@ DATA makeInverse(DATA e, DATA phi)
             return i;
 
     printf("Error\n");
+    exit(0);
+}
+
+DATA extendEuclid(DATA r1, DATA r2)
+{
+    int r, q, s, s1 = 1, s2 = 0, t, t1 = 0, t2 = 1, tmp = r1;
+
+    while (r2)
+    {
+        q = r1 / r2;
+        r = r1 % r2;
+        s = s1 - q * s2;
+        t = t1 - q * t2;
+
+        NEXT(r1, r2, r);
+        NEXT(s1, s2, s);
+        NEXT(t1, t2, t);
+    }
+
+    if (r1 == 1) //역원이 있음
+    {
+        if (t1 < 0)
+            t1 += tmp;
+        return t1;
+    }
+
+    printf("not inverse");
     exit(0);
 }
