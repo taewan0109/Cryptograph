@@ -1,2 +1,2 @@
 # Cryptograph
-이 저장소는 제 영재원 프로젝트의 코드들을 모아놓은 저장소입니다.
+This repository is for my Gifted Center project.
