@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Chat Client</Name>
+    <Version>1.0.0</Version>
+    <Title>Chat Client Installer</Title>
+	
+    <Publisher>TW Kim</Publisher>
+    <StartMenuDir>Chat_Client</StartMenuDir>
+    <TargetDir>D:/Chat_Client</TargetDir>
+</Installer>
